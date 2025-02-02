@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>锡山区消防救援大队考核抽签系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 修改背景和标题样式 */
+        .fire-rescue-theme {
+            background: linear-gradient(135deg, #003A8C 0%, #1890FF 100%);
+            min-height: 100vh;
+        }
+
+        .container-fluid {
+            background-color: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 修改头部样式 */
+        header {
+            background: linear-gradient(135deg, #002766 0%, #003A8C 100%);
+            color: white;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 58, 140, 0.3);
+            padding: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .header-logo {
+            height: 100px;
+            width: auto;
+            object-fit: contain;
+            margin-right: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 52px;
+            line-height: 100px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 修改卡片样式 */
+        .main-card {
+            box-shadow: 0 0 20px rgba(0, 58, 140, 0.1);
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-header.bg-danger {
+            background: linear-gradient(135deg, #003A8C 0%, #1890FF 100%) !important;
+            border: none;
+        }
+
+        /* 按钮样式 */
+        .btn-danger {
+            background: linear-gradient(135deg, #003A8C 0%, #1890FF 100%);
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #002766 0%, #0050B3 100%);
+        }
+
+        .btn-outline-danger {
+            border-color: #003A8C;
+            color: #003A8C;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #003A8C;
+            color: white;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 24px;
+                line-height: 1.5;
+                margin-top: 10px;
+            }
+        }
+
+        /* 表格样式优化 */
+        .table th {
+            background-color: #f0f5ff;
+            border-color: #d6e4ff;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f0f5ff;
+        }
+
+        /* 状态标签样式 */
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .status-normal {
+            background-color: #1890FF;
+            color: white;
+        }
+
+        .status-vacation {
+            background-color: #faad14;
+            color: black;
+        }
+
+        .status-sick {
+            background-color: #ff7875;
+            color: white;
+        }
+
+        .motto-box {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .motto {
+            color: #ffffff;
+            font-size: 42px;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+            word-spacing: 0.8em;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .motto {
+                font-size: 18px;
+                letter-spacing: 1px;
+                word-spacing: 1.5em;
+            }
+        }
+
+        .sub-motto-box {
+            margin-top: 10px;
+            padding: 5px;
+        }
+
+        .sub-motto {
+            color: #ffffff;
+            font-size: 28px;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+            word-spacing: 3em;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .sub-motto {
+                font-size: 14px;
+                letter-spacing: 1px;
+                word-spacing: 1.5em;
+            }
+        }
+
+        /* 添加渐入动画效果 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        /* 表格行悬浮效果 */
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 58, 140, 0.1);
+            z-index: 1;
+            position: relative;
+        }
+        
+        /* 按钮点击波纹效果 */
+        .btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease-out, height 0.6s ease-out;
+        }
+        
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* 状态标签动画效果 */
+        .status-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .status-badge:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 抽签结果动画 */
+        @keyframes resultAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        #drawingResultsTable tr {
+            animation: resultAppear 0.5s ease forwards;
+        }
+        
+        /* 添加卡片内容切换动画 */
+        .card-body {
+            transition: all 0.3s ease;
+        }
+        
+        /* 输入框焦点效果 */
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
+            border-color: #1890FF;
+        }
+        
+        /* 下拉框美化 */
+        .form-select {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:hover {
+            border-color: #1890FF;
+        }
+
+        /* 打字机效果 */
+        .typing-effect {
+            border-right: 3px solid transparent;
+            animation: typing 3s steps(30) infinite,
+                       blink-caret 0.75s step-end infinite;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: rgba(255,255,255,0.75) }
+        }
+
+        /* 文字光效果 */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.3) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) rotate(30deg); }
+        }
+
+        /* 标题悬浮效果 */
+        h1 {
+            transition: all 0.3s ease;
+        }
+
+        h1:hover {
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            transform: scale(1.02);
+        }
+
+        /* Logo旋转效果 */
+        .header-logo {
+            transition: transform 0.5s ease;
+        }
+
+        .header-logo:hover {
+            transform: rotate(360deg);
+        }
+
+        /* 标语动态效果 */
+        .motto, .sub-motto {
+            background: linear-gradient(
+                to right,
+                #ffffff 20%,
+                #91d5ff 40%,
+                #1890ff 60%,
+                #ffffff 80%
+            );
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine-text 3s linear infinite;
+        }
+
+        @keyframes shine-text {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .typing-effect {
+                animation: none;
+                border-right: none;
+            }
+            
+            .motto, .sub-motto {
+                animation: none;
+                color: #ffffff;
+            }
+        }
+
+        .author-signature {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background: rgba(0, 58, 140, 0.8);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .author-signature:hover {
+            background: rgba(0, 58, 140, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .author-signature {
+                bottom: 10px;
+                right: 10px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+    
+    <!-- 添加动态效果脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加表格行动画
+            function addTableRowEffects() {
+                const tables = document.querySelectorAll('.table');
+                tables.forEach(table => {
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach((row, index) => {
+                        row.style.animationDelay = `${index * 0.1}s`;
+                        row.classList.add('fade-in');
+                    });
+                });
+            }
+            
+            // 添加按钮点击效果
+            function addButtonEffects() {
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        const ripple = document.createElement('div');
+                        ripple.classList.add('ripple');
+                        this.appendChild(ripple);
+                        setTimeout(() => ripple.remove(), 600);
+                    });
+                });
+            }
+            
+            // 初始化动态效果
+            addTableRowEffects();
+            addButtonEffects();
+            
+            // 监听抽签按钮
+            const drawBtn = document.getElementById('drawBtn');
+            if(drawBtn) {
+                drawBtn.addEventListener('click', function() {
+                    this.classList.add('animate__animated', 'animate__pulse');
+                    setTimeout(() => {
+                        this.classList.remove('animate__animated', 'animate__pulse');
+                    }, 1000);
+                });
+            }
+            
+            // 添加表格行hover效果
+            const tableRows = document.querySelectorAll('.table tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</head>
+<body class="fire-rescue-theme">
+    <div class="container-fluid">
+        <header class="text-center py-4">
+            <div class="header-content animate__animated animate__fadeIn">
+                <img src="微信图片_20250130175837.png" alt="消防救援队徽" class="header-logo animate__animated animate__rotateIn">
+                <h1 class="animate__animated animate__slideInRight">无锡市锡山区消防救援大队考核抽签系统</h1>
+            </div>
+            <div class="motto-box animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                <p class="motto typing-effect">对党忠诚&nbsp;&nbsp;&nbsp;&nbsp;纪律严明&nbsp;&nbsp;&nbsp;&nbsp;赴汤蹈火&nbsp;&nbsp;&nbsp;&nbsp;竭诚为民</p>
+            </div>
+            <div class="sub-motto-box animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+                <p class="sub-motto shine-effect">公平&nbsp;&nbsp;&nbsp;&nbsp;公正&nbsp;&nbsp;&nbsp;&nbsp;公开</p>
+            </div>
+        </header>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-11">
+                <div class="card main-card">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">抽签配置</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <input type="file" class="form-control form-control-sm" id="fileInput" accept=".xlsx,.xls">
+                            </div>
+                            <button class="btn btn-light btn-sm me-2" id="importBtn">导入数据</button>
+                            <button class="btn btn-light btn-sm me-2" id="templateBtn">下载模板</button>
+                            <button class="btn btn-light btn-sm" id="exportBtn">导出结果</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- 抽签配置区域 -->
+                        <div class="drawing-config mb-4">
+                            <h5>抽签设置</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>岗位类别</th>
+                                            <th>抽取人数</th>
+                                            <th>岗位人数</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="drawingConfigTable">
+                                        <!-- 动态生成配置行 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm" id="addConfigBtn">
+                                <i class="fas fa-plus"></i> 添加抽签配置
+                            </button>
+                        </div>
+
+                        <!-- 抽签控制按钮 -->
+                        <div class="text-center mb-4">
+                            <button class="btn btn-danger btn-lg" id="drawBtn">开始抽签</button>
+                        </div>
+
+                        <!-- 抽签结果展示 -->
+                        <div class="results-section mb-4">
+                            <h5>抽签结果</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>单位</th>
+                                            <th>指挥员</th>
+                                            <th>战斗员</th>
+                                            <th>通信员</th>
+                                            <th>驾驶员</th>
+                                            <th>安全员</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="drawingResultsTable">
+                                        <tr>
+                                            <td>安镇专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>新材料产业园专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>鹅湖专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>港下专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>羊尖专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>东北塘专职队</td>
+                                            <td class="commander-cell"></td>
+                                            <td class="fighter-cell"></td>
+                                            <td class="communicator-cell"></td>
+                                            <td class="driver-cell"></td>
+                                            <td class="safety-cell"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 人员管理区域 -->
+                        <div class="personnel-section">
+                            <h5>人员管理</h5>
+                            <div class="filters mb-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="departmentFilter">
+                                            <option value="">全部部门</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="positionFilter">
+                                            <option value="">全部岗位</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="statusFilter">
+                                            <option value="">全部状态</option>
+                                            <option value="正常">正常</option>
+                                            <option value="休假">休假</option>
+                                            <option value="伤病">伤病</option>
+                                            <option value="公差">公差</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="searchInput" placeholder="搜索人员...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="personnelChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="author-signature">
+        <span>作者：张宇</span>
+    </div>
+
+    <!-- 状态修改模态框 -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">修改人员状态</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="statusForm">
+                        <div class="mb-3">
+                            <label class="form-label">状态</label>
+                            <select class="form-select" id="statusSelect">
+                                <option value="正常">正常</option>
+                                <option value="休假">休假</option>
+                                <option value="伤病">伤病</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-control" id="statusRemark"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveStatus">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-code.js"></script>
+    <script src="main.js"></script>
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <div class="zoom-level">100%</div>
+        <button class="zoom-btn" onclick="zoomOut()">-</button>
+        <button class="zoom-btn" onclick="resetZoom()">↺</button>
+    </div>
+</body>
+</html> 
